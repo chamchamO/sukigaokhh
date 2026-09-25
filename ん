@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>韓国ラッパー好き顔9選</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: #fff7fb;
+  color: #333;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  text-align: center;
+}
+
+h1 {
+  margin: 20px 0 8px;
+  font-size: 28px;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 28px;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.start-button,
+.next-button {
+  background: #333;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.progress {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.instruction {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid transparent;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.card.selected {
+  border-color: #ff6fae;
+  transform: scale(0.97);
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.card-name {
+  padding: 10px 4px;
+  font-weight: bold;
+}
+
+.result-title {
+  margin-top: 30px;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.result-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.result-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.result-card p {
+  margin: 7px 3px 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.retry-button {
+  margin-top: 24px;
+  background: #eee;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- START -->
+  <section id="startScreen">
+    <h1>韓国ラッパー<br>好き顔9選</h1>
+    <p class="subtitle">
+      あなたの好きな顔を<br>
+      直感で選んでね♡
+    </p>
+
+    <button class="start-button" onclick="startGame()">
+      START
+    </button>
+  </section>
+
+
+  <!-- GAME -->
+  <section id="gameScreen" class="hidden">
+
+    <div class="progress" id="progress"></div>
+
+    <div class="instruction" id="instruction">
+      好きな人を選んでね
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <button class="next-button" onclick="nextGroup()">
+      次へ
+    </button>
+
+  </section>
+
+
+  <!-- RESULT -->
+  <section id="resultScreen" class="hidden">
+
+    <h1 class="result-title">
+      MY 好き顔9選
+    </h1>
+
+    <p>あなたが選んだ好き顔はこちら♡</p>
+
+    <div class="result-grid" id="resultGrid"></div>
+
+    <button class="retry-button" onclick="location.reload()">
+      もう一度やる
+    </button>
+
+  </section>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   ここに候補者を追加していく
+   ===================================== */
+
+const candidates = [
+
+  {
+    name: "候補者01",
+    image: "images/01.jpg"
+  },
+
+  {
+    name: "候補者02",
+    image: "images/02.jpg"
+  },
+
+  {
+    name: "候補者03",
+    image: "images/03.jpg"
+  },
+
+  {
+    name: "候補者04",
+    image: "images/04.jpg"
+  },
+
+  {
+    name: "候補者05",
+    image: "images/05.jpg"
+  },
+
+  {
+    name: "候補者06",
+    image: "images/06.jpg"
+  },
+
+  {
+    name: "候補者07",
+    image: "images/07.jpg"
+  },
+
+  {
+    name: "候補者08",
+    image: "images/08.jpg"
+  },
+
+  {
+    name: "候補者09",
+    image: "images/09.jpg"
+  },
+
+  {
+    name: "候補者10",
+    image: "images/10.jpg"
+  },
+
+  {
+    name: "候補者11",
+    image: "images/11.jpg"
+  },
+
+  {
+    name: "候補者12",
+    image: "images/12.jpg"
+  }
+
+];
+
+
+/* =====================================
+   ゲーム本体
+   ===================================== */
+
+let currentCandidates = [];
+let selected = [];
+let group = [];
+let groupIndex = 0;
+let nextPool = [];
+
+const GROUP_SIZE = 6;
+const TARGET = 9;
+
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+
+function startGame() {
+
+  currentCandidates = shuffle(candidates);
+
+  selected = [];
+  nextPool = [];
+  groupIndex = 0;
+
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  showGroup();
+}
+
+
+function showGroup() {
+
+  const start = groupIndex * GROUP_SIZE;
+
+  group = currentCandidates.slice(
+    start,
+    start + GROUP_SIZE
+  );
+
+  selected = [];
+
+  const totalGroups = Math.ceil(
+    currentCandidates.length / GROUP_SIZE
+  );
+
+  document.getElementById("progress").textContent =
+    `第 ${groupIndex + 1} / ${totalGroups} グループ`;
+
+  document.getElementById("instruction").textContent =
+    "この中で好きな人を選んでね";
+
+  const cards = document.getElementById("cards");
+
+  cards.innerHTML = "";
+
+  group.forEach((person, index) => {
+
+    const card = document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+      <img src="${person.image}" alt="${person.name}">
+      <div class="card-name">${person.name}</div>
+    `;
+
+    card.onclick = () => {
+
+      if (selected.includes(person)) {
+
+        selected = selected.filter(
+          p => p !== person
+        );
+
+        card.classList.remove("selected");
+
+      } else {
+
+        selected.push(person);
+
+        card.classList.add("selected");
+      }
+
+    };
+
+    cards.appendChild(card);
+  });
+}
+
+
+function nextGroup() {
+
+  if (selected.length === 0) {
+
+    alert("最低1人は選んでね！");
+    return;
+  }
+
+  nextPool.push(...selected);
+
+  groupIndex++;
+
+  if (
+    groupIndex * GROUP_SIZE >=
+    currentCandidates.length
+  ) {
+
+    finishRound();
+
+  } else {
+
+    showGroup();
+  }
+}
+
+
+function finishRound() {
+
+  /*
+   * 9人以下になったら結果へ
+   */
+
+  if (nextPool.length <= TARGET) {
+
+    showResult(nextPool);
+    return;
+  }
+
+
+  /*
+   * 9人より多かったら、
+   * 選ばれた人だけでもう一度6人ずつ選抜
+   */
+
+  currentCandidates = shuffle(nextPool);
+
+  nextPool = [];
+  groupIndex = 0;
+
+  document.getElementById("instruction").textContent =
+    "ここからさらに厳選！";
+
+  showGroup();
+}
+
+
+function showResult(result) {
+
+  document.getElementById("gameScreen")
+    .classList.add("hidden");
+
+  document.getElementById("resultScreen")
+    .classList.remove("hidden");
+
+  const grid =
+    document.getElementById("resultGrid");
+
+  grid.innerHTML = "";
+
+  result.forEach((person, index) => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "result-card";
+
+    card.innerHTML = `
+      <img src="${person.image}" alt="${person.name}">
+      <p>${index + 1}. ${person.name}</p>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+</script>
+
+</body>
+</html>
